@@ -1,0 +1,26 @@
+{
+  "template": "https://github.com/FAIRmat-NFDI/cookiecutter-nomad-plugin",
+  "commit": "c40010ce548126347c5fd7b36c2a5031bcd0b34b",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "full_name": "Nathan Daelman",
+      "email": "nathan.daelman@physik.hu-berlin.de",
+      "github_username": "ndaelman-hu",
+      "plugin_name": "parser-vasp",
+      "module_name": "parser_vasp",
+      "short_description": "Standalone NOMAD plugin for parsing VASP calculation files.",
+      "version": "0.1.0",
+      "license": "Apache Software License 2.0",
+      "include_schema_package": true,
+      "include_normalizer": false,
+      "include_parser": true,
+      "include_app": false,
+      "_copy_without_render": [
+        "*.html"
+      ],
+      "_template": "https://github.com/FAIRmat-NFDI/cookiecutter-nomad-plugin"
+    }
+  },
+  "directory": null
+}
