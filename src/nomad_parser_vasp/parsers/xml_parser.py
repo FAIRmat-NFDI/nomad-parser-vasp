@@ -23,17 +23,17 @@ configuration = config.get_plugin_entry_point('nomad_parser_vasp.parsers:myparse
 # TODO move to schema parser and prepare all relevant annotations for every file format
 
 # ! vasprun.xml has many meta fields, explaining field semantics
-Program.name.m_annotations = dict(
+Simulation.m_annotations = dict(xml=MappingAnnotationModel(path='modeling'))
+Simulation.program.name.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.generator.i[@name="program"]')
 )
-Program.version.m_annotations = dict(
+Simulation.program.version.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.generator.i[@name="version"]')
 )
 # ? compilation mode?
-Program.compilation_host.m_annotations = dict(
+Simulation.program.compilation_host.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.generator.i[@name="platform"]')
 )
-Simulation.m_annotations = dict(xml=MappingAnnotationModel(path='modeling'))
 KMesh.grid.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[@name="divisions"]')
 )
@@ -46,12 +46,8 @@ KMesh.high_symmetry_points.m_annotations = dict(
 KMesh.weights.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[@name="weights"]')
 )
-dft_path = 'modeling.calculation[@name="electronic"]'
-DFT.xc_functionals.libxc_name.m_annotations = dict(
-    xml=MappingAnnotationModel(
-        operator=(convert_xc, [dft_path + '.i[@name="GGA"]'])  # add LDA & mGGA
-    )
-)
+dft_path = 'modeling.separator[@name="electronic exchange-correlation"]'
+# DFT.xc_functionals.m_annotations = dict(xml=MappingAnnotationModel(path=dft_path))
 DFT.exact_exchange_mixing_factor.m_annotations = dict(
     xml=MappingAnnotationModel(
         operator=(
@@ -59,6 +55,11 @@ DFT.exact_exchange_mixing_factor.m_annotations = dict(
             [dft_path + '.i[@name="HFALPHA"]', dft_path + '.i[@name="LHFCALC"]'],
         )
     )  # TODO convert vasp bool
+)
+XCFunctional.libxc_name.m_annotations = dict(
+    xml=MappingAnnotationModel(
+        operator=(convert_xc, [dft_path + '.i[@name="GGA"]'])  # add LDA & mGGA
+    )
 )
 # ? target <structure name="initialpos" > and <structure name="finalpos" >
 AtomicCell.positions.m_annotations = dict(
@@ -129,7 +130,6 @@ class VasprunXMLParser(MatchingParser):
         archive_parser = MetainfoParser(
             annotation_key='xml',
             data_object=[
-                Program,
                 Simulation(
                     model_system=[ModelSystem(cell=AtomicCell)],
                     model_method=[DFT, KMesh],
