@@ -11,8 +11,12 @@ if TYPE_CHECKING:
     )
 
 from nomad.config import config
-from nomad.datamodel.results import Material, Results
 from nomad.parsing.parser import MatchingParser
+from nomad.parsing.file_parser.mapping_parser import (
+    MappingAnnotationModel,
+    MetainfoParser,
+    XMLParser,
+)
 
 configuration = config.get_plugin_entry_point('nomad_parser_vasp.parsers:myparser')
 
@@ -29,6 +33,18 @@ Program.version.m_annotations = dict(
 Program.compilation_host.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.generator.i[@name="platform"]')
 )
+KMesh.grid.m_annotations = dict(
+    xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[@name="divisions"]')
+)
+KMesh.offset.m_annotations = dict(
+    xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[@name="shift"]')
+)
+KMesh.high_symmetry_points.m_annotations = dict(
+    xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[@name="kpointlist"]')
+)
+KMesh.weights.m_annotations = dict(
+    xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[@name="weights"]')
+)
 dft_path = 'modeling.calculation[@name="electronic"]'
 XCFunctional.libxc_name.m_annotations = dict(
     xml=MappingAnnotationModel(
@@ -44,7 +60,7 @@ DFT.exact_exchange_mixing_factor.m_annotations = dict(
     )  # TODO convert vasp bool
 )
 # ? target <structure name="initialpos" > and <structure name="finalpos" >
-Cell.positions.m_annotations = dict(
+AtomicCell.positions.m_annotations = dict(
     xml=MappingAnnotationModel(path='calculation.structure.varray[@name="positions"]')
 )
 """
@@ -55,7 +71,7 @@ stress.m_annotations = dict(
     xml=MappingAnnotationModel(path='calculation.structure.varray[@name="stress"]')
 )
 """
-Cell.lattice_vectors.m_annotations = dict(
+AtomicCell.lattice_vectors.m_annotations = dict(
     xml=MappingAnnotationModel(
         path='calculation.structure.crystal.varray[@name="basis"]'
     )
@@ -98,13 +114,27 @@ ElectronicEigenvalues.value.m_annotations = dict(
 # ? partial bands
 
 
-class MyParser(MatchingParser):
+class VasprunXMLParser(MatchingParser):
     def parse(
         self,
         mainfile: str,
-        archive: 'EntryArchive',
-        logger: 'BoundLogger',
-        child_archives: dict[str, 'EntryArchive'] = None,
+        archive: EntryArchive,
+        logger: BoundLogger,
+        child_archives: dict[str, EntryArchive] = None,
     ) -> None:
-        logger.info('MyParser.parse', parameter=configuration.parameter)
-        archive.results = Results(material=Material(elements=['H', 'O']))
+        logger.info(
+            self.__class__.__repr__() + '.parse', parameter=configuration.parameter
+        )  # give feedback to Ahmed
+        archive_parser = MetainfoParser(
+            annotation_key='xml',
+            data_object=[
+                Program,
+                KMesh,
+                DFT,
+                AtomicCell,
+                ElectronicEigenvalues,
+            ],
+        )
+        xml_parser = XMLParser(filepath='vasprun.xml')  # TODO apply match
+        xml_parser.convert(archive_parser)
+        archive = archive_parser.data_object
