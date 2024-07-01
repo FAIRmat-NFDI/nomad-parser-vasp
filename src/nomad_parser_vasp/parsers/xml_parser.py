@@ -25,82 +25,86 @@ configuration = config.get_plugin_entry_point('nomad_parser_vasp.parsers:myparse
 # ! vasprun.xml has many meta fields, explaining field semantics
 Simulation.m_annotations = dict(xml=MappingAnnotationModel(path='modeling'))
 Simulation.program.name.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.generator.i[@name="program"]')
+    xml=MappingAnnotationModel(path='modeling.generator.i[?"@name"="program"]')
 )
 Simulation.program.version.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.generator.i[@name="version"]')
+    xml=MappingAnnotationModel(path='modeling.generator.i[?"@name"="version"]')
 )
 # ? compilation mode?
 Simulation.program.compilation_host.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.generator.i[@name="platform"]')
+    xml=MappingAnnotationModel(path='modeling.generator.i[?"@name"="platform"]')
 )
 KMesh.grid.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[@name="divisions"]')
+    xml=MappingAnnotationModel(
+        path='modeling.kpoints.generation.v[?"@name"="divisions"]'
+    )
 )
 KMesh.offset.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[@name="shift"]')
+    xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[?"@name"="shift"]')
 )
 KMesh.high_symmetry_points.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[@name="kpointlist"]')
+    xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[?"@name"="kpointlist"]')
 )
 KMesh.weights.m_annotations = dict(
-    xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[@name="weights"]')
+    xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[?"@name"="weights"]')
 )
-dft_path = 'modeling.separator[@name="electronic exchange-correlation"]'
+dft_path = 'modeling.separator[?"@name"="electronic exchange-correlation"]'
 # DFT.xc_functionals.m_annotations = dict(xml=MappingAnnotationModel(path=dft_path))
 DFT.exact_exchange_mixing_factor.m_annotations = dict(
     xml=MappingAnnotationModel(
         operator=(
             lambda mix, cond: mix if cond else 0,
-            [dft_path + '.i[@name="HFALPHA"]', dft_path + '.i[@name="LHFCALC"]'],
+            [dft_path + '.i[?"@name"="HFALPHA"]', dft_path + '.i[?"@name"="LHFCALC"]'],
         )
     )  # TODO convert vasp bool
 )
 XCFunctional.libxc_name.m_annotations = dict(
     xml=MappingAnnotationModel(
-        operator=(convert_xc, [dft_path + '.i[@name="GGA"]'])  # add LDA & mGGA
+        operator=(convert_xc, [dft_path + '.i[?"@name"="GGA"]'])  # add LDA & mGGA
     )
 )
 # ? target <structure name="initialpos" > and <structure name="finalpos" >
 AtomicCell.positions.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.structure.varray[@name="positions"]')
+    xml=MappingAnnotationModel(
+        path='calculation.structure.varray[?"@name"="positions"]'
+    )
 )
 """
 forces.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.structure.varray[@name="forces"]')
+    xml=MappingAnnotationModel(path='calculation.structure.varray[?"@name"="forces"]')
 )
 stress.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.structure.varray[@name="stress"]')
+    xml=MappingAnnotationModel(path='calculation.structure.varray[?"@name"="stress"]')
 )
 """
 AtomicCell.lattice_vectors.m_annotations = dict(
     xml=MappingAnnotationModel(
-        path='calculation.structure.crystal.varray[@name="basis"]'
+        path='calculation.structure.crystal.varray[?"@name"="basis"]'
     )
 )
 """
 cell_volume.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.structure.crystal.i[@name="volume"]')
+    xml=MappingAnnotationModel(path='calculation.structure.crystal.i[?"@name"="volume"]')
 )
 reciprocal_lattice_vectors.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.structure.crystal.varray[@name="rec_basis"]')
+    xml=MappingAnnotationModel(path='calculation.structure.crystal.varray[?"@name"="rec_basis"]')
 )
 total_free_energy.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.energy.i[@name="e_fr_energy"]')
+    xml=MappingAnnotationModel(path='calculation.energy.i[?"@name"="e_fr_energy"]')
 )
 total_internal_energy.m_annotations = dict(
-    xml=MappingAnnotationModel(path='calculation.energy.i[@name="e_0_energy"]')
+    xml=MappingAnnotationModel(path='calculation.energy.i[?"@name"="e_0_energy"]')
 )
 """
 ElectronicEigenvalues.spin_channel.m_annotations = dict(
     xml=MappingAnnotationModel(
-        path='calculation.eigenvalues.array.set.set[@comment="spin 1"]'
+        path='calculation.eigenvalues.array.set.set[?"@comment"="spin 1"]'
     )
 )
 ElectronicEigenvalues.reciprocal_cell.m_annotations = dict(
     xml=MappingAnnotationModel(
         path=ElectronicEigenvalues.spin_channel.m_annotations.xml
-        + '.set[@comment="kpoint 1"]'
+        + '.set[?"@comment"="kpoint 1"]'
     )  # TODO not going to work: add conversion to reference
 )
 ElectronicEigenvalues.occupation.m_annotations = dict(
