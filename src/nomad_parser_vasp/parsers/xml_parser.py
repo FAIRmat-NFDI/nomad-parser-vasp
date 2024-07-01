@@ -11,12 +11,12 @@ if TYPE_CHECKING:
     )
 
 from nomad.config import config
-from nomad.parsing.parser import MatchingParser
 from nomad.parsing.file_parser.mapping_parser import (
     MappingAnnotationModel,
     MetainfoParser,
     XMLParser,
 )
+from nomad_simulations_plugin.numerical_settings import KMesh
 
 configuration = config.get_plugin_entry_point('nomad_parser_vasp.parsers:myparser')
 
@@ -33,6 +33,7 @@ Program.version.m_annotations = dict(
 Program.compilation_host.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.generator.i[@name="platform"]')
 )
+Simulation.m_annotations = dict(xml=MappingAnnotationModel(path='modeling'))
 KMesh.grid.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.kpoints.generation.v[@name="divisions"]')
 )
@@ -46,7 +47,7 @@ KMesh.weights.m_annotations = dict(
     xml=MappingAnnotationModel(path='modeling.kpoints.varray.v[@name="weights"]')
 )
 dft_path = 'modeling.calculation[@name="electronic"]'
-XCFunctional.libxc_name.m_annotations = dict(
+DFT.xc_functionals.libxc_name.m_annotations = dict(
     xml=MappingAnnotationModel(
         operator=(convert_xc, [dft_path + '.i[@name="GGA"]'])  # add LDA & mGGA
     )
@@ -129,12 +130,13 @@ class VasprunXMLParser(MatchingParser):
             annotation_key='xml',
             data_object=[
                 Program,
-                KMesh,
-                DFT,
-                AtomicCell,
-                ElectronicEigenvalues,
+                Simulation(
+                    model_system=[ModelSystem(cell=AtomicCell)],
+                    model_method=[DFT, KMesh],
+                    output=[ElectronicEigenvalues],
+                ),
             ],
         )
         xml_parser = XMLParser(filepath='vasprun.xml')  # TODO apply match
         xml_parser.convert(archive_parser)
-        archive = archive_parser.data_object
+        archive.data = archive_parser.data_object
