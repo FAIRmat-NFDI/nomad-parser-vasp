@@ -32,10 +32,9 @@ configuration = config.get_plugin_entry_point(
 
 
 # ! vasprun.xml has many meta fields, explaining field semantics
-Simulation.m_annotations['xml'] = MappingAnnotationModel(path='modeling')
+Simulation.m_def.m_annotations['xml'] = MappingAnnotationModel(path='modeling')
 
-
-Program.m_annotations['xml'] = MappingAnnotationModel(path='.generator')
+Simulation.program.m_annotations['xml'] = MappingAnnotationModel(path='.generator')
 
 
 Program.name.m_annotations['xml'] = MappingAnnotationModel(
@@ -63,5 +62,5 @@ class VasprunXMLParser(MatchingParser):
     ) -> None:
         logger.info('VasprunXMLParser.parse', parameter=configuration.parameter)
         data_parser = MetainfoParser(annotation_key='xml', data_object=Simulation())
-        XMLParser().convert(data_parser)
+        XMLParser(filepath=mainfile).convert(data_parser)
         archive.data = data_parser.data_object
