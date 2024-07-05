@@ -11,7 +11,7 @@ from nomad.parsing.file_parser.mapping_parser import (
     MetainfoParser,
     XMLParser,
 )
-from nomad_simulations.schema_packages.general import Simulation
+from schema_packages.vasp_package import Simulation
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:xml_entry_point'
