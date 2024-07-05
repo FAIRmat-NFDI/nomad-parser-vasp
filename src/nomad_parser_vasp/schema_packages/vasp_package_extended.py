@@ -154,6 +154,14 @@ ElectronicEigenvalues.occupation.m_annotations['xml'] = MappingAnnotationModel(
 ElectronicEigenvalues.value.m_annotations['xml'] = MappingAnnotationModel(
     path=ElectronicEigenvalues.reciprocal_cell.m_annotations.xml + '.r[1]'
 )
+
+electronic_energy_correction.m_annotations['xml'] = MappingAnnotationModel(
+    path='calculation.energy.i[?"@name"="hartreedc"]'
+)
+
+exchange_correlation_energy_correction.m_annotations['xml'] = MappingAnnotationModel(
+    path='calculation.energy.i[?"@name"="XCdc"]'
+)
 """
 
 m_package.__init_metainfo__()
