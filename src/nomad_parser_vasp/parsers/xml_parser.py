@@ -7,11 +7,7 @@ from structlog.stdlib import (
 
 from nomad.config import config
 from nomad.parsing import MatchingParser
-from nomad.parsing.file_parser.mapping_parser import (
-    MetainfoParser,
-    XMLParser,
-)
-from schema_packages.vasp_package import Simulation
+from nomad.parsing.file_parser.xml_parser import XMLParser
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:xml_entry_point'
@@ -27,6 +23,5 @@ class VasprunXMLParser(MatchingParser):
         child_archives: dict[str, EntryArchive] = None,
     ) -> None:
         logger.info('VasprunXMLParser.parse', parameter=configuration.parameter)
-        data_parser = MetainfoParser(annotation_key='xml', data_object=Simulation())
-        XMLParser(filepath=mainfile).convert(data_parser)
-        archive.data = data_parser.data_object
+        xml_reader = XMLParser(mainfile=mainfile).parse('/*')  # XPath syntax
+        archive.data = xml_reader._results
