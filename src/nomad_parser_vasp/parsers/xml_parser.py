@@ -8,9 +8,9 @@ from structlog.stdlib import (
 import numpy as np
 from nomad.config import config
 from nomad.parsing import MatchingParser
-from nomad_simulations.general import Simulation, Program
-from nomad_simulations.model_method import DFT, XCFunctional
-from nomad_simulations.model_system import ModelSystem, AtomicCell
+from nomad_simulations.schema_packages.general import Simulation, Program
+from nomad_simulations.schema_packages.model_method import DFT, XCFunctional
+from nomad_simulations.schema_packages.model_system import ModelSystem, AtomicCell
 from nomad.parsing.file_parser.xml_parser import XMLParser
 
 configuration = config.get_plugin_entry_point(
