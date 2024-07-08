@@ -18,6 +18,10 @@ configuration = config.get_plugin_entry_point(
 
 
 class VasprunXMLParser(MatchingParser):
+    convert_xc = {
+        '--': 'PBE',
+    }
+
     def parse(
         self,
         mainfile: str,
@@ -36,14 +40,10 @@ class VasprunXMLParser(MatchingParser):
                 name='VASP',
                 version=xml_get("//generator/i[@name='version']")[0],
             ),
-            model_method=DFT(
-                xc_functional=XCFunctional(
-                    name=xml_get("i[@name='GGA']")[0],
-                ),
-            ),
-            model_system=AtomicCell(
-                cell=AtomicCell(
-                    positions=xml_get("structure/varray[@name='positions']/v")[0],
-                ),
-            ),
         )
+
+        if positions := xml_get("structure/varray[@name='positions']/v")[0].any():
+            atomic_cell = AtomicCell(
+                positions=positions,
+            )
+            archive.data.model_system.append(atomic_cell)
