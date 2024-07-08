@@ -5,11 +5,12 @@ from structlog.stdlib import (
     BoundLogger,
 )
 
+import numpy as np
 from nomad.config import config
 from nomad.parsing import MatchingParser
 from nomad_simulations.general import Simulation, Program
 from nomad_simulations.model_method import DFT, XCFunctional
-from nomad_simulations.model_system import AtomicCell
+from nomad_simulations.model_system import ModelSystem, AtomicCell
 from nomad.parsing.file_parser.xml_parser import XMLParser
 
 configuration = config.get_plugin_entry_point(
@@ -33,16 +34,16 @@ class VasprunXMLParser(MatchingParser):
         logger.info('VasprunXMLParser.parse', parameter=configuration.parameter)
         xml_reader = XMLParser(mainfile=mainfile)  # XPath syntax
 
-        def xml_get(path: str, index: int = 0):
+        def xml_get(path: str, slicer=slice(0, 1), fallback=None):
             try:
-                return xml_reader.parse(path)._results[path][index]
+                return xml_reader.parse(path)._results[path][slicer]
             except KeyError:
-                return
+                return fallback
 
         archive.data = Simulation(
             program=Program(
                 name='VASP',
-                version=xml_get("//generator/i[@name='version']"),
+                version=xml_get("//generator/i[@name='version']")[0],
             ),
             model_method=[
                 DFT(
@@ -50,7 +51,7 @@ class VasprunXMLParser(MatchingParser):
                         XCFunctional(
                             libxc_name=self.convert_xc.get(
                                 xml_get(
-                                    "///separator[@name='electronic exchange-correlation']/i[@name='LDA']"
+                                    "///separator[@name='electronic exchange-correlation']/i[@name='LSDA']"
                                 ),
                                 {},
                             )
@@ -72,8 +73,13 @@ class VasprunXMLParser(MatchingParser):
             ],
         )
 
-        if positions := xml_get("structure/varray[@name='positions']/v").any():
-            atomic_cell = AtomicCell(
-                positions=positions,
+        if (
+            positions := xml_get(
+                "structure[@name='finalpos']/./varray[@name='positions']/v",
+                slice(None),
+                fallback=np.array([]),
             )
-            archive.data.model_system.append(atomic_cell)
+        ).any():
+            archive.data.model_system.append(
+                ModelSystem(cell=[AtomicCell(positions=positions)])
+            )
