@@ -3,165 +3,114 @@ from typing import (
 )
 
 if TYPE_CHECKING:
-    pass
+    from nomad.datamodel.datamodel import (
+        EntryArchive,
+    )
+    from structlog.stdlib import (
+        BoundLogger,
+    )
 
-from nomad.metainfo import SchemaPackage
-from nomad.parsing.file_parser.mapping_parser import MappingAnnotationModel
-from nomad_simulations.schema_packages.general import Program, Simulation
-from nomad_simulations.schema_packages.model_method import (
-    DFT,
-    XCFunctional,
+import numpy as np
+from nomad.config import config
+from nomad.metainfo import (
+    MEnum,
+    Quantity,
+    SchemaPackage,
 )
-from nomad_simulations.schema_packages.model_system import (
-    AtomicCell,
+from nomad_simulations.schema_packages.properties import TotalEnergy
+from nomad_simulations.schema_packages.properties.energies import BaseEnergy
+
+configuration = config.get_plugin_entry_point(
+    'nomad_parser_vasp.schema_packages:mypackage'
 )
-from nomad_simulations.schema_packages.numerical_settings import KMesh
 
 m_package = SchemaPackage()
 
-# note: vasprun.xml has many meta fields, explaining field semantics
-Simulation.m_def.m_annotations['xml'] = MappingAnnotationModel(path='modeling')
 
-Simulation.program.m_annotations['xml'] = MappingAnnotationModel(path='.generator')
+# class DoubleCountingCorrection(BaseEnergy):  # no extra class, label via type
+#     value = Quantity(
+#         type=np.dtype(np.float64),
+#         unit='eV',
+#     )
+#     type  # from physical property (like Chema BandGap direct/indirect label)
+#
+#     # Needed?
+#     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+#         super().normalize(archive, logger)
+#
+#         logger.info('MySchema.normalize', parameter=configuration.parameter)
+#         self.message = f'Hello {self.name}!'
 
-Simulation.model_method.m_annotations['xml'] = MappingAnnotationModel(
-    path='.parameters'
-)
 
-Simulation.model_system.m_annotations['xml'] = MappingAnnotationModel(
-    path='.calculation'
-)
+# class HartreeDCEnergy(DoubleCountingCorrection):
+#     value = DoubleCountingCorrection.value
 
-Simulation.model_system.cell.m_annotations['xml'] = MappingAnnotationModel(
-    path='.structure'
-)
 
-Simulation.outputs.m_annotations['xml'] = MappingAnnotationModel(path='.calculation')
+# class XCdcEnergy(DoubleCountingCorrection):
+#     value = DoubleCountingCorrection.value
 
-Program.name.m_annotations['xml'] = MappingAnnotationModel(
-    path='.i[?"@name"="program"]'
-)
 
-Program.version.m_annotations['xml'] = MappingAnnotationModel(
-    path='.i[?"@name"="version"]'
-)
+# class Outputs(Outputs):
+#     m_def = Section(
+#         validate=False,
+#         extends_base_section=True,
+#     )
 
-# ? compilation mode
-Program.compilation_host.m_annotations['xml'] = MappingAnnotationModel(
-    path='.i[?"@name"="platform"]'
-)
+#     # add a new section for the custom output
+#     hartreedc = SubSection(
+#         sub_section=HartreeDCEnergy.m_def,
+#         repeats=True,
+#     )
 
-DFT.numerical_settings.m_annotations['xml'] = MappingAnnotationModel(
-    path='modeling.kpoints'
-)
+#     xcdc = SubSection(
+#         sub_section=XCdcEnergy.m_def,
+#         repeats=True,
+#     )
 
-dft_path = '.separator[?"@name"="electronic exchange-correlation"]'
-DFT.xc_functionals.m_annotations['xml'] = MappingAnnotationModel(
-    path=dft_path
-)  # start from Simulation.model_method path
 
-DFT.exact_exchange_mixing_factor.m_annotations = dict(
-    xml=MappingAnnotationModel(
-        operator=(
-            lambda mix, cond: mix if cond else 0,
-            [dft_path + '.i[?"@name"="HFALPHA"]', dft_path + '.i[?"@name"="LHFCALC"]'],
-        )
-    )  # TODO convert vasp bool
-)
-
-XCFunctional.libxc_name.m_annotations = dict(
-    xml=MappingAnnotationModel(
-        path=dft_path + '.i[?"@name"="GGA"]'  # TODO add LDA & mGGA, convert_xc
+class DoubleCountingEnergy(BaseEnergy):
+    value = Quantity(
+        type=np.dtype(np.float64),
+        unit='eV',
     )
-)
 
-KMesh.grid.m_annotations['xml'] = MappingAnnotationModel(
-    path='.generation.v[?"@name"="divisions"]'
-)  # start from DFT.numerical_settings
+    type = Quantity(
+        type=MEnum('double_counting'),
+    )
 
-KMesh.offset.m_annotations['xml'] = MappingAnnotationModel(
-    path='.generation.v[?"@name"="shift"]'
-)  # start from DFT.numerical_settings
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        super().normalize(archive, logger)
 
-KMesh.offset.m_annotations['xml'] = MappingAnnotationModel(
-    path='.generation.v[?"@name"="shift"]'
-)  # start from DFT.numerical_settings
-
-KMesh.points.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="kpointlist"].v'
-)  # start from DFT.numerical_settings
-
-KMesh.weights.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="weights"].v'
-)  # start from DFT.numerical_settings
+        if not self.type:
+            self.type = 'double_counting'
 
 
-# ? target <structure name="initialpos" > and <structure name="finalpos" >
+class HartreeDCEnergy(DoubleCountingEnergy):
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        super().normalize(archive, logger)
 
 
-AtomicCell.positions.m_annotations = dict(
-    xml=MappingAnnotationModel(path='.varray[?"@name"="positions"]')
-)  # start from Simulation.model_system.cell path
+class XCdcEnergy(DoubleCountingEnergy):
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        super().normalize(archive, logger)
 
-"""
-...forces.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="forces"]'
-)  # start from Simulation.model_system.cell path
 
-...stress.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="stress"]'
-)  # start from Simulation.model_system.cell path
-"""
+class RestEnergy(BaseEnergy):
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        super().normalize(archive, logger)
 
-AtomicCell.lattice_vectors.m_annotations['xml'] = MappingAnnotationModel(
-    path='.crystal.varray[?"@name"="basis"]'
-)  # start from Simulation.model_system.cell path
 
-"""
-cell_volume.m_annotations['xml'] = MappingAnnotationModel(
-    path='.crystal.i[?"@name"="volume"]'
-)  # start from Simulation.model_system.cell path
+class TotalEnergy(TotalEnergy):
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+        super().normalize(archive, logger)
 
-reciprocal_lattice_vectors.m_annotations['xml'] = MappingAnnotationModel(
-    path='.crystal.varray[?"@name"="rec_basis"]'
-)  # start from Simulation.model_system.cell path
+        if self.total_energy:
+            for total_energy in self.total_energy:
+                if total_energy.value and total_energy.contributions:
+                    value = total_energy.value
+                    for contribution in total_energy.contributions:
+                        value -= contribution.value
+                    total_energy.rest_energy.append(RestEnergy(value=value))
 
-total_free_energy.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation.energy.i[?"@name"="e_fr_energy"]'
-)
-
-total_internal_energy.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation.energy.i[?"@name"="e_0_energy"]'
-)
-
-...eigenvalues.m_annotations['xml'] = MappingAnnotationModel(
-    path='.eigenvalues.array'
-)
-
-ElectronicEigenvalues.spin_channel.m_annotations['xml'] = MappingAnnotationModel(
-    path='.eigenvalues.set.set[?"@comment"="spin 1"]'
-)  # start from Simulation.outputs path
-
-ElectronicEigenvalues.reciprocal_cell.m_annotations['xml'] = MappingAnnotationModel(
-    path=ElectronicEigenvalues.spin_channel.m_annotations.xml
-    + '.set[?"@comment"="kpoint 1"]'
-)  # TODO not going to work: add conversion to reference
-
-ElectronicEigenvalues.occupation.m_annotations['xml'] = MappingAnnotationModel(
-    path=ElectronicEigenvalues.reciprocal_cell.m_annotations.xml + '.r[0]'
-)
-
-ElectronicEigenvalues.value.m_annotations['xml'] = MappingAnnotationModel(
-    path=ElectronicEigenvalues.reciprocal_cell.m_annotations.xml + '.r[1]'
-)
-
-electronic_energy_correction.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation.energy.i[?"@name"="hartreedc"]'
-)
-
-exchange_correlation_energy_correction.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation.energy.i[?"@name"="XCdc"]'
-)
-"""
 
 m_package.__init_metainfo__()
