@@ -1,5 +1,6 @@
+import nomad_simulations
 from nomad.metainfo import MEnum, Quantity
-from nomad_simulations.properties.energies import EnergyContribution
+from nomad_simulations.schema_packages.properties.energies import EnergyContribution
 
 
 class DoubleCountingEnergy(EnergyContribution):
