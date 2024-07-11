@@ -1,17 +1,19 @@
-from nomad.datamodel.datamodel import (
-    EntryArchive,
-)
-from structlog.stdlib import (
-    BoundLogger,
-)
-
 import numpy as np
 from nomad.config import config
+from nomad.datamodel.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
-from nomad_simulations.schema_packages.general import Simulation, Program
-from nomad_simulations.schema_packages.model_method import DFT, XCFunctional
-from nomad_simulations.schema_packages.model_system import ModelSystem, AtomicCell
 from nomad.parsing.file_parser.xml_parser import XMLParser
+from nomad_simulations.general import Program, Simulation
+from nomad_simulations.model_method import DFT, XCFunctional
+from nomad_simulations.model_system import AtomicCell, ModelSystem
+from nomad_simulations.outputs import Outputs
+from structlog.stdlib import BoundLogger
+
+from nomad_parser_vasp.schema_packages.vasp_schema import (
+    HartreeDCEnergy,
+    TotalEnergy,
+    XCdcEnergy,
+)
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:xml_entry_point'
@@ -83,3 +85,16 @@ class VasprunXMLParser(MatchingParser):
             archive.data.model_system.append(
                 ModelSystem(cell=[AtomicCell(positions=positions)])
             )
+
+        total_energy = xml_get("i[@name='e_fr_energy']", slice(-2, -1))
+        hartreedc = xml_get("i[@name='hartreedc']", slice(-2, -1))
+        xcdc = xml_get("i[@name='XCdc']", slice(-2, -1))
+
+        output = Outputs()
+        archive.simulation.outputs.append(output)
+        output.total_energy.append(TotalEnergy(value=total_energy * ureg.eV))
+
+        output.total_energy[0].contributions.append(
+            HartreeDCEnergy(value=hartreedc * ureg.eV)
+        )
+        output.total_energy[0].contributions.append(XCdcEnergy(value=xcdc * ureg.eV))
