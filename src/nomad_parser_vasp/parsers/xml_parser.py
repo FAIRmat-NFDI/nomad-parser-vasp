@@ -3,6 +3,7 @@ from nomad.config import config
 from nomad.datamodel.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
 from nomad.parsing.file_parser.xml_parser import XMLParser
+from nomad.units import ureg
 from nomad_simulations.general import Program, Simulation
 from nomad_simulations.model_method import DFT, XCFunctional
 from nomad_simulations.model_system import AtomicCell, ModelSystem
@@ -12,6 +13,7 @@ from structlog.stdlib import BoundLogger
 from nomad_parser_vasp.schema_packages.vasp_schema import (
     HartreeDCEnergy,
     TotalEnergy,
+    UnknownEnergy,
     XCdcEnergy,
 )
 
@@ -87,14 +89,19 @@ class VasprunXMLParser(MatchingParser):
             )
 
         total_energy = xml_get("i[@name='e_fr_energy']", slice(-2, -1))
+        total_energy = total_energy[0] if total_energy else None
         hartreedc = xml_get("i[@name='hartreedc']", slice(-2, -1))
+        hartreedc = hartreedc[0] if hartreedc else None
         xcdc = xml_get("i[@name='XCdc']", slice(-2, -1))
+        xcdc = xcdc[0] if xcdc else None
 
         output = Outputs()
-        archive.simulation.outputs.append(output)
+        archive.data.outputs.append(output)
         output.total_energy.append(TotalEnergy(value=total_energy * ureg.eV))
 
         output.total_energy[0].contributions.append(
             HartreeDCEnergy(value=hartreedc * ureg.eV)
         )
         output.total_energy[0].contributions.append(XCdcEnergy(value=xcdc * ureg.eV))
+
+        output.total_energy[0].contributions.append(UnknownEnergy(value=None))

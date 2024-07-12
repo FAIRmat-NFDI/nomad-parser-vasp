@@ -16,16 +16,34 @@ class DoubleCountingEnergy(EnergyContribution):
 
 
 class HartreeDCEnergy(DoubleCountingEnergy):
+    def __init__(
+        self, m_def: 'Section' = None, m_context: 'Context' = None, **kwargs
+    ) -> None:
+        super().__init__(m_def, m_context, **kwargs)
+        self.name = self.m_def.name
+
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
 
 
 class XCdcEnergy(DoubleCountingEnergy):
+    def __init__(
+        self, m_def: 'Section' = None, m_context: 'Context' = None, **kwargs
+    ) -> None:
+        super().__init__(m_def, m_context, **kwargs)
+        self.name = self.m_def.name
+
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
 
 
 class UnknownEnergy(EnergyContribution):
+    def __init__(
+        self, m_def: 'Section' = None, m_context: 'Context' = None, **kwargs
+    ) -> None:
+        super().__init__(m_def, m_context, **kwargs)
+        self.name = self.m_def.name
+
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
 
@@ -40,13 +58,15 @@ class TotalEnergy(nomad_simulations.schema_packages.properties.TotalEnergy):
             return
 
         value = self.value
-        unknown_energy_exists = False
-        for contribution in self.contributions:
+        i_unknown = None
+        for i_cont, contribution in enumerate(self.contributions):
+            if contribution.name == 'UnknownEnergy':
+                i_unknown = i_cont
+
             if not contribution.value:
                 continue
-            if contribution.name == 'UnknownEnergy':
-                unknown_energy_exists = True
 
             value -= contribution.value
-        if not unknown_energy_exists:
-            self.contributions.append(UnknownEnergy(value=value))
+
+        if i_unknown:
+            self.contributions[i_unknown].value = value
