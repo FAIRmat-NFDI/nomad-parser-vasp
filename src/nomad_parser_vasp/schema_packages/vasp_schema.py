@@ -58,15 +58,23 @@ class TotalEnergy(nomad_simulations.schema_packages.properties.TotalEnergy):
             return
 
         value = self.value
+        unknown_exists = False
+        unknown_has_value = False
         i_unknown = None
         for i_cont, contribution in enumerate(self.contributions):
             if contribution.name == 'UnknownEnergy':
+                unknown_exists = True
                 i_unknown = i_cont
+                unknown_has_value = True if contribution.value else False
 
             if not contribution.value:
                 continue
 
             value -= contribution.value
 
-        if i_unknown:
-            self.contributions[i_unknown].value = value
+        if unknown_exists:
+            if not unknown_has_value:
+                self.contributions[i_unknown].value = value
+        else:
+            self.contributions.append(UnknownEnergy(value=value))
+            self.contributions[-1].normalize(archive, logger)
