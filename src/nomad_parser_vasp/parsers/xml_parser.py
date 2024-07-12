@@ -115,13 +115,8 @@ class VasprunXMLParser(MatchingParser):
         # its unknown contributions (3 ways, choose 1)               #
         ##############################################################
 
-        # Case 1: Add UnknownEnergy to contribution list in the parser with a value
-        from nomad_parser_vasp.schema_packages.vasp_schema import UnknownEnergy
-
-        output.total_energy[0].contributions.append(
-            UnknownEnergy(value=(total_energy - hartreedc - xcdc))
-        )
-        # Expected Results: normalizer does not change the value of UnknownEnergy
+        # Case 1: Don't include UnknownEnergy in parsing
+        # Expected Results: UnknownEnergy is added to contribution list by the normalizer
 
         # Case 2: Add UnknownEnergy to contribution list in the parser but without a value
         # from nomad_parser_vasp.schema_packages.vasp_schema import UnknownEnergy
@@ -129,5 +124,10 @@ class VasprunXMLParser(MatchingParser):
         # output.total_energy[0].contributions.append(UnknownEnergy(value=None))
         # Expected Results: UnknownEnergy value is calculated by the normalizer and placed into this section
 
-        # Case 3: Don't include UnknownEnergy in parsing
-        # Expected Results: UnknownEnergy is added to contribution list by the normalizer
+        # Case 3: Add UnknownEnergy to contribution list in the parser with a value
+        # from nomad_parser_vasp.schema_packages.vasp_schema import UnknownEnergy
+
+        # output.total_energy[0].contributions.append(
+        #     UnknownEnergy(value=(total_energy - hartreedc - xcdc))
+        # )
+        # Expected Results: normalizer does not change the value of UnknownEnergy
