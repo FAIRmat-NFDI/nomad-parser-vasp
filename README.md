@@ -23,7 +23,7 @@ pip install -e '.[dev]' --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/
 Until we have an official pypi NOMAD release with the plugins functionality. Make
 sure to include NOMAD's internal package registry (e.g. via `--index-url`).
 
-**Linking to correct parser version**
+**Linking to correct parser version:**
 There might be cases where you want to extend the functionalities of a preexisting parser, potentially leading to conflicts with NOMAD not correctly recognizing your modified version. To fix this, delete the lines in `nomad/nomad/config/defaults.yaml` corresponding to the original version, and pip install NOMAD by pointing to the local directory, i.e., pip install `file:///<path-to-nomad>`.
 
 ### Testing
