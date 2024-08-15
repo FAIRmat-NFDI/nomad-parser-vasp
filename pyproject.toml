@@ -25,7 +25,9 @@ maintainers = [
     { name = "Nathan Daelman", email = "nathan.daelman@physik.hu-berlin.de" },
 ]
 license = { file = "LICENSE" }
-dependencies = ["nomad-lab>=1.3.0"]
+dependencies = ["nomad-lab==1.3.4",
+"nomad-simulations==0.0.3"
+]
 
 [project.urls]
 Repository = "https://github.com/ndaelman-hu/nomad-parser-vasp"
