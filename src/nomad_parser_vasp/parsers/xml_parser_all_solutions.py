@@ -7,7 +7,14 @@ from nomad.units import ureg
 from nomad_simulations.schema_packages.general import Program, Simulation
 from nomad_simulations.schema_packages.model_method import DFT, XCFunctional
 from nomad_simulations.schema_packages.model_system import AtomicCell, ModelSystem
+from nomad_simulations.schema_packages.outputs import Outputs
 from structlog.stdlib import BoundLogger
+
+from nomad_parser_vasp.schema_packages.vasp_schema import (
+    HartreeDCEnergy,
+    TotalEnergy,
+    XCdcEnergy,
+)
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:xml_entry_point'
@@ -92,3 +99,36 @@ class VasprunXMLParser(MatchingParser):
         hartreedc = hartreedc[0] * ureg.eV if hartreedc else None
         xcdc = xml_get("i[@name='XCdc']", slice(-2, -1))
         xcdc = xcdc[0] * ureg.eV if xcdc else None
+
+        ####################################################
+        # Create the outputs section, populate it with the #
+        # parsed energies, and add it to the archive       #
+        ####################################################
+        output = Outputs()
+        archive.data.outputs.append(output)
+        output.total_energy.append(TotalEnergy(value=total_energy))
+        output.total_energy[0].contributions.append(HartreeDCEnergy(value=hartreedc))
+        output.total_energy[0].contributions.append(XCdcEnergy(value=xcdc))
+
+        ##############################################################
+        # Add a new contribution to the total energy that quantifies #
+        # its unknown contributions (3 ways, choose 1)               #
+        ##############################################################
+
+        # Case 1: Don't include UnknownEnergy in parsing
+        # Expected Results: UnknownEnergy is added to contribution list by the normalizer
+
+        # # Case 2: Add UnknownEnergy to contribution list in the parser but without a value
+        # from nomad_parser_vasp.schema_packages.vasp_schema import UnknownEnergy
+
+        # output.total_energy[0].contributions.append(UnknownEnergy(value=None))
+        # # Expected Results: UnknownEnergy value is calculated by the normalizer and placed into this section
+
+        # Case 3: Add UnknownEnergy to contribution list in the parser with a value
+        # from nomad_parser_vasp.schema_packages.vasp_schema import UnknownEnergy
+
+        # output.total_energy[0].contributions.append(
+        #     UnknownEnergy(value=(total_energy - 2 * hartreedc - xcdc))
+        # )
+        # Expected Results: normalizer does not change the value of UnknownEnergy
+        # (for testing purposes we subtract double the hartreedc value)
