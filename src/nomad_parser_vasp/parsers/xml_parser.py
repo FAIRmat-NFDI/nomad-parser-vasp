@@ -4,10 +4,10 @@ from nomad.datamodel.datamodel import EntryArchive
 from nomad.parsing import MatchingParser
 from nomad.parsing.file_parser.xml_parser import XMLParser
 from nomad.units import ureg
-from nomad_simulations.general import Program, Simulation
-from nomad_simulations.model_method import DFT, XCFunctional
-from nomad_simulations.model_system import AtomicCell, ModelSystem
-from nomad_simulations.outputs import Outputs
+from nomad_simulations.schema_packages.general import Program, Simulation
+from nomad_simulations.schema_packages.model_method import DFT, XCFunctional
+from nomad_simulations.schema_packages.model_system import AtomicCell, ModelSystem
+from nomad_simulations.schema_packages.outputs import Outputs
 from structlog.stdlib import BoundLogger
 
 from nomad_parser_vasp.schema_packages.vasp_schema import (
@@ -128,6 +128,7 @@ class VasprunXMLParser(MatchingParser):
         # from nomad_parser_vasp.schema_packages.vasp_schema import UnknownEnergy
 
         # output.total_energy[0].contributions.append(
-        #     UnknownEnergy(value=(total_energy - hartreedc - xcdc))
+        #     UnknownEnergy(value=(total_energy - 2 * hartreedc - xcdc))
         # )
         # Expected Results: normalizer does not change the value of UnknownEnergy
+        # (for testing purposes we subtract double the hartreedc value)
