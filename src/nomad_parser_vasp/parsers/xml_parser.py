@@ -1,12 +1,16 @@
-from nomad.datamodel.datamodel import (
-    EntryArchive,
-)
-from structlog.stdlib import (
-    BoundLogger,
+from typing import (
+    TYPE_CHECKING,
 )
 
+if TYPE_CHECKING:
+    from nomad.datamodel.datamodel import (
+        EntryArchive,
+    )
+    from structlog.stdlib import (
+        BoundLogger,
+    )
+
 from nomad.config import config
-from nomad.parsing import MatchingParserInterface
 from nomad.parsing.file_parser.mapping_parser import (
     MetainfoParser,
     XMLParser,
@@ -18,16 +22,16 @@ configuration = config.get_plugin_entry_point(
 )
 
 
-class VasprunXMLParser(MatchingParserInterface):
+class VasprunXMLParser:
     def parse(
         self,
-        mainfile: str,
-        archive: EntryArchive,
-        logger: BoundLogger,
-        child_archives: dict[str, EntryArchive] = None,
+        mainfile: 'str',
+        archive: 'EntryArchive',
+        logger: 'BoundLogger',
+        child_archives: 'dict[str, EntryArchive]' = None,
     ) -> None:
-        logger.info('VasprunXMLParser.parse', parameter=configuration.parameter)
-        mix_alpha = staticmethod(lambda mix, cond: mix if cond else 0)
+        logger.info(self.__class__.__name__, parameter=configuration.parameter)
+        mix_alpha = staticmethod(lambda mix, cond: mix if cond else 0)  # pylint: disable=W0613
 
         data_parser = MetainfoParser(annotation_key='xml', data_object=Simulation())
         XMLParser(filepath=mainfile).convert(data_parser)
