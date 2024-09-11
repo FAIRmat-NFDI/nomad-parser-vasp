@@ -1,14 +1,16 @@
-from nomad.config.models.plugins import ParserEntryPoint
+from nomad.config.models.plugins import EntryPoint
 from pydantic import Field
 
 
-class VasprunXMLEntryPoint(ParserEntryPoint):
+class VasprunXMLEntryPoint(EntryPoint):
     parameter: int = Field(0, description='Custom configuration parameter')
 
     def load(self):
         from nomad_parser_vasp.parsers.xml_parser import VasprunXMLParser
 
-        return VasprunXMLParser('nomad_parser_vasp/parser/xml_parser.py/VasprunXMLParser', **self.dict())
+        return VasprunXMLParser(
+            'nomad_parser_vasp/parser/xml_parser.py/VasprunXMLParser', **self.dict()
+        )
 
 
 xml_entry_point = VasprunXMLEntryPoint(

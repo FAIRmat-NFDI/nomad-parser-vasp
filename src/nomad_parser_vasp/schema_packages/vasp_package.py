@@ -38,9 +38,7 @@ Simulation.model_system.m_annotations['xml'] = MappingAnnotationModel(
     path='.calculation'
 )
 
-ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(
-    path='.structure'
-)
+ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(path='.structure')
 
 Simulation.outputs.m_annotations['xml'] = MappingAnnotationModel(path='.calculation')
 
@@ -70,7 +68,10 @@ DFT.exact_exchange_mixing_factor.m_annotations = dict(
     xml=MappingAnnotationModel(
         operator=(
             'mix_alpha',
-            [dft_path + '.i[?"@name"=="HFALPHA"]', dft_path + '.i[?"@name"=="LHFCALC"]'],
+            [
+                dft_path + '.i[?"@name"=="HFALPHA"]',
+                dft_path + '.i[?"@name"=="LHFCALC"]',
+            ],
         )
     )  # TODO convert vasp bool
 )
