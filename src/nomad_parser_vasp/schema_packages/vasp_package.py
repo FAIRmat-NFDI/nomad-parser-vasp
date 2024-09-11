@@ -38,30 +38,30 @@ Simulation.model_system.m_annotations['xml'] = MappingAnnotationModel(
     path='.calculation'
 )
 
-Simulation.model_system.cell.m_annotations['xml'] = MappingAnnotationModel(
+ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(
     path='.structure'
 )
 
 Simulation.outputs.m_annotations['xml'] = MappingAnnotationModel(path='.calculation')
 
 Program.name.m_annotations['xml'] = MappingAnnotationModel(
-    path='.i[?"@name"="program"]'
+    path='.i[?"@name"=="program"]'
 )
 
 Program.version.m_annotations['xml'] = MappingAnnotationModel(
-    path='.i[?"@name"="version"]'
+    path='.i[?"@name"=="version"]'
 )
 
 # ? compilation mode
 Program.compilation_host.m_annotations['xml'] = MappingAnnotationModel(
-    path='.i[?"@name"="platform"]'
+    path='.i[?"@name"=="platform"]'
 )
 
 DFT.numerical_settings.m_annotations['xml'] = MappingAnnotationModel(
     path='modeling.kpoints'
 )
 
-dft_path = '.separator[?"@name"="electronic exchange-correlation"]'
+dft_path = '.separator[?"@name"=="electronic exchange-correlation"]'
 DFT.xc_functionals.m_annotations['xml'] = MappingAnnotationModel(
     path=dft_path
 )  # start from Simulation.model_method path
@@ -69,36 +69,36 @@ DFT.xc_functionals.m_annotations['xml'] = MappingAnnotationModel(
 DFT.exact_exchange_mixing_factor.m_annotations = dict(
     xml=MappingAnnotationModel(
         operator=(
-            lambda mix, cond: mix if cond else 0,
-            [dft_path + '.i[?"@name"="HFALPHA"]', dft_path + '.i[?"@name"="LHFCALC"]'],
+            'mix_alpha',
+            [dft_path + '.i[?"@name"=="HFALPHA"]', dft_path + '.i[?"@name"=="LHFCALC"]'],
         )
     )  # TODO convert vasp bool
 )
 
 XCFunctional.libxc_name.m_annotations = dict(
     xml=MappingAnnotationModel(
-        path=dft_path + '.i[?"@name"="GGA"]'  # TODO add LDA & mGGA, convert_xc
+        path=dft_path + '.i[?"@name"=="GGA"]'  # TODO add LDA & mGGA, convert_xc
     )
 )
 
 KMesh.grid.m_annotations['xml'] = MappingAnnotationModel(
-    path='.generation.v[?"@name"="divisions"]'
+    path='.generation.v[?"@name"=="divisions"]'
 )  # start from DFT.numerical_settings
 
 KMesh.offset.m_annotations['xml'] = MappingAnnotationModel(
-    path='.generation.v[?"@name"="shift"]'
+    path='.generation.v[?"@name"=="shift"]'
 )  # start from DFT.numerical_settings
 
 KMesh.offset.m_annotations['xml'] = MappingAnnotationModel(
-    path='.generation.v[?"@name"="shift"]'
+    path='.generation.v[?"@name"=="shift"]'
 )  # start from DFT.numerical_settings
 
 KMesh.points.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="kpointlist"].v'
+    path='.varray[?"@name"=="kpointlist"].v'
 )  # start from DFT.numerical_settings
 
 KMesh.weights.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="weights"].v'
+    path='.varray[?"@name"=="weights"].v'
 )  # start from DFT.numerical_settings
 
 
@@ -106,38 +106,38 @@ KMesh.weights.m_annotations['xml'] = MappingAnnotationModel(
 
 
 AtomicCell.positions.m_annotations = dict(
-    xml=MappingAnnotationModel(path='.varray[?"@name"="positions"]')
+    xml=MappingAnnotationModel(path='.varray[?"@name"=="positions"]')
 )  # start from Simulation.model_system.cell path
 
 """
 ...forces.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="forces"]'
+    path='.varray[?"@name"=="forces"]'
 )  # start from Simulation.model_system.cell path
 
 ...stress.m_annotations['xml'] = MappingAnnotationModel(
-    path='.varray[?"@name"="stress"]'
+    path='.varray[?"@name"=="stress"]'
 )  # start from Simulation.model_system.cell path
 """
 
 AtomicCell.lattice_vectors.m_annotations['xml'] = MappingAnnotationModel(
-    path='.crystal.varray[?"@name"="basis"]'
+    path='.crystal.varray[?"@name"=="basis"]'
 )  # start from Simulation.model_system.cell path
 
 """
 cell_volume.m_annotations['xml'] = MappingAnnotationModel(
-    path='.crystal.i[?"@name"="volume"]'
+    path='.crystal.i[?"@name"=="volume"]'
 )  # start from Simulation.model_system.cell path
 
 reciprocal_lattice_vectors.m_annotations['xml'] = MappingAnnotationModel(
-    path='.crystal.varray[?"@name"="rec_basis"]'
+    path='.crystal.varray[?"@name"=="rec_basis"]'
 )  # start from Simulation.model_system.cell path
 
 total_free_energy.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation.energy.i[?"@name"="e_fr_energy"]'
+    path='calculation.energy.i[?"@name"=="e_fr_energy"]'
 )
 
 total_internal_energy.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation.energy.i[?"@name"="e_0_energy"]'
+    path='calculation.energy.i[?"@name"=="e_0_energy"]'
 )
 
 ...eigenvalues.m_annotations['xml'] = MappingAnnotationModel(
@@ -145,12 +145,12 @@ total_internal_energy.m_annotations['xml'] = MappingAnnotationModel(
 )
 
 ElectronicEigenvalues.spin_channel.m_annotations['xml'] = MappingAnnotationModel(
-    path='.eigenvalues.set.set[?"@comment"="spin 1"]'
+    path='.eigenvalues.set.set[?"@comment"=="spin 1"]'
 )  # start from Simulation.outputs path
 
 ElectronicEigenvalues.reciprocal_cell.m_annotations['xml'] = MappingAnnotationModel(
     path=ElectronicEigenvalues.spin_channel.m_annotations.xml
-    + '.set[?"@comment"="kpoint 1"]'
+    + '.set[?"@comment"=="kpoint 1"]'
 )  # TODO not going to work: add conversion to reference
 
 ElectronicEigenvalues.occupation.m_annotations['xml'] = MappingAnnotationModel(

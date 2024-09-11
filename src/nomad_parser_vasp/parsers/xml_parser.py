@@ -6,19 +6,19 @@ from structlog.stdlib import (
 )
 
 from nomad.config import config
-from nomad.parsing import MatchingParser
+from nomad.parsing import MatchingParserInterface
 from nomad.parsing.file_parser.mapping_parser import (
     MetainfoParser,
     XMLParser,
 )
-from schema_packages.vasp_package import Simulation
+from nomad_parser_vasp.schema_packages.vasp_package import Simulation
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:xml_entry_point'
 )
 
 
-class VasprunXMLParser(MatchingParser):
+class VasprunXMLParser(MatchingParserInterface):
     def parse(
         self,
         mainfile: str,
@@ -27,6 +27,8 @@ class VasprunXMLParser(MatchingParser):
         child_archives: dict[str, EntryArchive] = None,
     ) -> None:
         logger.info('VasprunXMLParser.parse', parameter=configuration.parameter)
+        mix_alpha = staticmethod(lambda mix, cond: mix if cond else 0)
+
         data_parser = MetainfoParser(annotation_key='xml', data_object=Simulation())
         XMLParser(filepath=mainfile).convert(data_parser)
         archive.data = data_parser.data_object
