@@ -4,12 +4,14 @@ from nomad.config.models.plugins import ParserEntryPoint
 
 class VasprunXMLEntryPoint(ParserEntryPoint):
     parameter: int = Field(0, description='Custom configuration parameter')
-    parser_class_name='nomad_parser_vasp.parsers.xml_parser.VasprunXMLParser'
 
     def load(self):
         from nomad.parsing import MatchingParserInterface
 
-        return MatchingParserInterface(**self.dict())
+        return MatchingParserInterface(
+            parser_class_name='nomad_parser_vasp.parsers.xml_parser.VasprunXMLParser',
+            **self.dict(),
+        )
 
 
 xml_entry_point = VasprunXMLEntryPoint(
