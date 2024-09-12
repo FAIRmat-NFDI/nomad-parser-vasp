@@ -28,17 +28,17 @@ m_package = SchemaPackage()
 # note: vasprun.xml has many meta fields, explaining field semantics
 Simulation.m_def.m_annotations['xml'] = MappingAnnotationModel(path="modeling")
 
-Simulation.program.m_annotations['xml'] = MappingAnnotationModel(path="modeling.generator")
+Simulation.program.m_annotations['xml'] = MappingAnnotationModel(path=".generator")
 
 Simulation.model_method.m_annotations['xml'] = MappingAnnotationModel(
-    path="modeling.parameters"
+    path=".parameters"
 )
 
 Simulation.model_system.m_annotations['xml'] = MappingAnnotationModel(
     path=".calculation"
 )
 
-ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(path="modeling.structure")
+ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(path=".structure")
 
 Simulation.outputs.m_annotations['xml'] = MappingAnnotationModel(path=".calculation")
 
