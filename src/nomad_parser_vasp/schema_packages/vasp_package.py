@@ -1,6 +1,4 @@
-from typing import (
-    TYPE_CHECKING,
-)
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import (
@@ -12,15 +10,10 @@ if TYPE_CHECKING:
 
 from nomad.metainfo import SchemaPackage
 from nomad.parsing.file_parser.mapping_parser import MappingAnnotationModel
-from nomad_simulations.schema_packages.general import Simulation, Program
-from nomad_simulations.schema_packages.model_system import (
-    ModelSystem,
-    AtomicCell,
-)
-from nomad_simulations.schema_packages.model_method import (
-    DFT,
-    XCFunctional,
-)
+from nomad_simulations.schema_packages.general import Program, Simulation
+from nomad_simulations.schema_packages.model_method import DFT, XCFunctional
+from nomad_simulations.schema_packages.model_system import (AtomicCell,
+                                                            ModelSystem)
 from nomad_simulations.schema_packages.numerical_settings import KMesh
 
 m_package = SchemaPackage()
@@ -43,7 +36,7 @@ ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(path=".structure"
 Simulation.outputs.m_annotations['xml'] = MappingAnnotationModel(path=".calculation")
 
 Program.name.m_annotations['xml'] = MappingAnnotationModel(
-    path="modeling.generator.i[?name == 'program']"
+    path='modeling.generator.i[?"@name"==\'program\'] | [0].__value',
 )
 
 Program.version.m_annotations['xml'] = MappingAnnotationModel(
