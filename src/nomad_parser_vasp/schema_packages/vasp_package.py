@@ -1,107 +1,163 @@
 from typing import TYPE_CHECKING
 
-from nomad.metainfo.metainfo import SubSection
-
 if TYPE_CHECKING:
-    from nomad.datamodel.datamodel import (
-        EntryArchive,
-    )
-    from structlog.stdlib import (
-        BoundLogger,
-    )
+    pass
 
-from nomad.metainfo import SchemaPackage
+from nomad.metainfo import SchemaPackage, SubSection
 from nomad.parsing.file_parser.mapping_parser import MappingAnnotationModel
-from nomad_simulations.schema_packages.general import Program, Simulation
-from nomad_simulations.schema_packages.model_method import ModelMethod, DFT, XCFunctional
-from nomad_simulations.schema_packages.model_system import (AtomicCell,
-                                                            ModelSystem)
-from nomad_simulations.schema_packages.numerical_settings import KMesh
+from nomad_simulations.schema_packages import (
+    general,
+    model_method,
+    model_system,
+    numerical_settings,
+    outputs,
+)
 
 m_package = SchemaPackage()
 
-# note: vasprun.xml has many meta fields, explaining field semantics
-Simulation.m_def.m_annotations['xml'] = MappingAnnotationModel(path='modeling')
 
-Simulation.program.m_annotations['xml'] = MappingAnnotationModel(path='generator')
+class Program(general.Program):
+    general.Program.name.m_annotations['xml'] = MappingAnnotationModel(
+        path='.i[?"@name"==\'program\'] | [0].__value',
+    )
 
-Simulation.model_method = SubSection(DFT.m_def)
-Simulation.model_method.m_annotations['xml'] = MappingAnnotationModel(
-    path='parameters'
-)
+    general.Program.version.m_annotations['xml'] = MappingAnnotationModel(
+        path='.i[?"@name"==\'version\'] | [0].__value',
+    )
 
-Simulation.model_system.m_annotations['xml'] = MappingAnnotationModel(
-    path='calculation'
-)
+    # Apply similar logic here
+    general.Program.compilation_host.m_annotations['xml'] = MappingAnnotationModel(
+        path='.i[?"@name"==\'platform\'] | [0].__value'
+    )
 
-ModelSystem.cell.m_annotations['xml'] = MappingAnnotationModel(path='structure')
 
-Simulation.outputs.m_annotations['xml'] = MappingAnnotationModel(path='calculation')
+class XCFunctional(model_method.XCFunctional):
+    model_method.XCFunctional.libxc_name.m_annotations = dict(
+        xml=MappingAnnotationModel(
+            path='.i[?"@name"==\'GGA\'] | [0].__value'  # TODO add LDA & mGGA, convert_xc
+        )
+    )
 
-Program.name.m_annotations['xml'] = MappingAnnotationModel(
-    path='modeling.generator.i[?"@name"==\'program\'] | [0].__value',
-)
 
-Program.version.m_annotations['xml'] = MappingAnnotationModel(
-    path='modeling.generator.i[?"@name"==\'version\'] | [0].__value',
-)
+class KMesh(numerical_settings.KMesh):
+    numerical_settings.KMesh.grid.m_annotations['xml'] = MappingAnnotationModel(
+        path='.generation.v[?"@name"==\'divisions\'] | [0].__value'
+    )
 
-# Apply similar logic here
-Program.compilation_host.m_annotations['xml'] = MappingAnnotationModel(
-    path='modeling.generator.i[?"@name"==\'platform\'] | [0].__value'
-)
+    numerical_settings.KMesh.offset.m_annotations['xml'] = MappingAnnotationModel(
+        path='.generation.v[?"@name"==\'shift\'] | [0].__value'
+    )
 
-DFT.m_def.m_annotations['xml'] = MappingAnnotationModel(
-    path='separator[?"@name"==\'electronic exchange-correlation\']'
-)
+    numerical_settings.KMesh.points.m_annotations['xml'] = MappingAnnotationModel(
+        path='.varray[?"@name"==\'kpointlist\'].v | [0]'
+    )
 
-DFT.numerical_settings.m_annotations['xml'] = MappingAnnotationModel(
-    path='modeling.kpoints'
-)
+    numerical_settings.KMesh.weights.m_annotations['xml'] = MappingAnnotationModel(
+        path='.varray[?"@name"==\'weights\'].v | [0]'
+    )
 
-DFT.xc_functionals.m_annotations['xml'] = MappingAnnotationModel(
-    path='.'
-)
 
-DFT.exact_exchange_mixing_factor.m_annotations = dict(
-    xml=MappingAnnotationModel(
-        operator=(
-            'mix_alpha',
-            [
-                'i[?"@name"==\'HFALPHA\'] | [0].__value',
-                'i[?"@name"==\'LHFCALC\'] | [0].__value',
-            ],
+class KSpace(numerical_settings.KSpace):
+    numerical_settings.KSpace.k_mesh.m_annotations['xml'] = MappingAnnotationModel(
+        path='.@'
+    )
+
+
+class DFT(model_method.DFT):
+    model_method.DFT.xc_functionals.m_annotations['xml'] = MappingAnnotationModel(
+        path='.separator[?"@name"==\'electronic exchange-correlation\']'
+    )
+
+    model_method.DFT.exact_exchange_mixing_factor.m_annotations['xml'] = (
+        MappingAnnotationModel(
+            operator=(
+                'mix_alpha',
+                [
+                    '.i[?"@name"==\'HFALPHA\'] | [0].__value',
+                    '.i[?"@name"==\'LHFCALC\'] | [0].__value',
+                ],
+            )
         )
     )  # TODO convert vasp bool
-)
 
-XCFunctional.libxc_name.m_annotations = dict(
-    xml=MappingAnnotationModel(
-        path='i[?"@name"==\'GGA\'] | [0].__value'  # TODO add LDA & mGGA, convert_xc
+    numerical_settings = SubSection(sub_section=KSpace.m_def, repeats=True)
+    numerical_settings.m_annotations['xml'] = MappingAnnotationModel(
+        path='modeling.kpoints'
     )
-)
 
-KMesh.grid.m_annotations['xml'] = MappingAnnotationModel(
-    path='generation.v[?"@name"==\'divisions\'] | [0].__value'
-)
 
-KMesh.offset.m_annotations['xml'] = MappingAnnotationModel(
-    path='generation.v[?"@name"==\'shift\'] | [0].__value'
-)
+class AtomicCell(model_system.AtomicCell):
+    model_system.AtomicCell.positions.m_annotations = dict(
+        xml=MappingAnnotationModel(path='.varray.v', unit='angstrom')
+    )
 
-KMesh.points.m_annotations['xml'] = MappingAnnotationModel(
-    path='varray[?"@name"==\'kpointlist\'].v | [0].__value'
-)
+    model_system.AtomicCell.lattice_vectors.m_annotations['xml'] = (
+        MappingAnnotationModel(
+            path='.crystal.varray[?"@name"==\'basis\'] | [0].v', unit='angstrom'
+        )
+    )
 
-KMesh.weights.m_annotations['xml'] = MappingAnnotationModel(
-    path='varray[?"@name"==\'weights\'].v | [0].__value'
-)
+
+class ModelSystem(general.ModelSystem):
+    cell = SubSection(sub_section=AtomicCell.m_def, repeats=True)
+    cell.m_annotations['xml'] = MappingAnnotationModel(path='.structure')
+
+
+class TotalEnergy(outputs.TotalEnergy):
+    outputs.TotalEnergy.value.m_annotations['xml'] = MappingAnnotationModel(
+        path='.energy.i[?"@name"==\'e_fr_energy\'] | [0].__value', unit='eV'
+    )
+
+
+class ElectronicEigenvalues(outputs.ElectronicEigenvalues):
+    outputs.ElectronicEigenvalues.n_bands.m_annotations['xml'] = MappingAnnotationModel(
+        path='length(.array.set.set.set[0].r)'
+    )
+    # TODO This only works for non-spin pol
+    outputs.ElectronicEigenvalues.occupation.m_annotations['xml2'] = (
+        MappingAnnotationModel(operator=('get_eigenvalues', ['.array.set.set.set[].r']))
+    )
+
+
+class Ouputs(outputs.Outputs):
+    outputs.Outputs.total_energies.m_annotations['xml'] = MappingAnnotationModel(
+        path='.@'
+    )
+    outputs.Outputs.electronic_eigenvalues.m_annotations = dict(
+        xml=MappingAnnotationModel(path='.eigenvalues'),
+        xml2=MappingAnnotationModel(path='.eigenvalues'),
+    )
+
+
+class Simulation(general.Simulation):
+    general.Simulation.program.m_annotations['xml'] = MappingAnnotationModel(
+        path='.generator'
+    )
+
+    model_method = SubSection(sub_section=DFT.m_def, repeats=True)
+    model_method.m_annotations['xml'] = MappingAnnotationModel(
+        path='.parameters.separator[?"@name"==\'electronic\']'
+    )
+
+    model_system = SubSection(sub_section=ModelSystem.m_def, repeats=True)
+    model_system.m_annotations['xml'] = MappingAnnotationModel(path='.calculation')
+
+    general.Simulation.outputs.m_annotations = dict(
+        xml=MappingAnnotationModel(path='.calculation'),
+        xml2=MappingAnnotationModel(path='.calculation'),
+    )
+
+
+# note: vasprun.xml has many meta fields, explaining field semantics
+Simulation.m_def.m_annotations['xml'] = MappingAnnotationModel(path='modeling')
+Simulation.m_def.m_annotations['xml2'] = MappingAnnotationModel(path='modeling')
+
+
+"""
 
 # ? target <structure name="initialpos" > and <structure name="finalpos" >
 
-AtomicCell.positions.m_annotations = dict(
-    xml=MappingAnnotationModel(path='varray[?"@name"==\'positions\'] | [0].__value')
-)
+"""
 
 """
 ...forces.m_annotations['xml'] = MappingAnnotationModel(
@@ -111,13 +167,7 @@ AtomicCell.positions.m_annotations = dict(
 ...stress.m_annotations['xml'] = MappingAnnotationModel(
     path='varray[?"@name"==\'stress\'] | [0].__value'
 )
-"""
 
-AtomicCell.lattice_vectors.m_annotations['xml'] = MappingAnnotationModel(
-    path='crystal.varray[?"@name"==\'basis\'] | [0].__value'
-)
-
-"""
 cell_volume.m_annotations['xml'] = MappingAnnotationModel(
     path='crystal.i[?"@name"==\'volume\'] | [0].__value'
 )

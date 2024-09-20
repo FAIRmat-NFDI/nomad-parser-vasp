@@ -1,6 +1,6 @@
-from typing import (
-    TYPE_CHECKING,
-)
+from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import (
@@ -11,17 +11,23 @@ if TYPE_CHECKING:
     )
 
 from nomad.config import config
-from nomad.parsing.file_parser.mapping_parser import (
-    MetainfoParser,
-    XMLParser,
-)
+from nomad.parsing.file_parser.mapping_parser import MetainfoParser, XMLParser
+
 from nomad_parser_vasp.schema_packages.vasp_package import Simulation
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:xml_entry_point'
 )
 
-mix_alpha = lambda mix, cond: mix if cond else 0  # pylint: disable=W0613
+
+class RunXMLParser(XMLParser):
+    @staticmethod
+    def mix_alpha(mix, cond):
+        return mix if cond else 0
+
+    @staticmethod
+    def get_eigenvalues(array):
+        return np.array(array).T[1]
 
 
 class VasprunXMLParser:
@@ -34,6 +40,18 @@ class VasprunXMLParser:
     ) -> None:
         logger.info(self.__class__.__name__, parameter=configuration.parameter)
 
-        data_parser = MetainfoParser(annotation_key='xml', data_object=Simulation())
-        XMLParser(filepath=mainfile).convert(data_parser)
-        archive.data = data_parser.data_object
+        data_parser = MetainfoParser()
+        data_parser.annotation_key = 'xml'
+
+        data = Simulation()
+        xml = RunXMLParser(filepath=mainfile)
+
+        data_parser.data_object = data
+        xml.convert(data_parser)
+
+        data_parser = MetainfoParser()
+        data_parser.annotation_key = 'xml2'
+        data_parser.data_object = data
+        xml.convert(data_parser)
+
+        archive.data = data
