@@ -1,84 +1,173 @@
-# nomad-plugin-template
-A template repository for creating a repository with a NOMAD plugin package.
+[![NOMAD](https://img.shields.io/badge/Open%20NOMAD-lightgray?logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDI3LjUuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHZpZXdCb3g9IjAgMCAxNTAwIDE1MDAiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDE1MDAgMTUwMDsiIHhtbDpzcGFjZT0icHJlc2VydmUiPgo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgoJLnN0MHtmaWxsOiMxOTJFODY7c3Ryb2tlOiMxOTJFODY7c3Ryb2tlLXdpZHRoOjE0MS4zMjI3O3N0cm9rZS1taXRlcmxpbWl0OjEwO30KCS5zdDF7ZmlsbDojMkE0Q0RGO3N0cm9rZTojMkE0Q0RGO3N0cm9rZS13aWR0aDoxNDEuMzIyNztzdHJva2UtbWl0ZXJsaW1pdDoxMDt9Cjwvc3R5bGU+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0xMTM2LjQsNjM2LjVjMTUwLjgsMCwyNzMuMS0xMjEuOSwyNzMuMS0yNzIuMlMxMjg3LjIsOTIuMSwxMTM2LjQsOTIuMWMtMTUwLjgsMC0yNzMuMSwxMjEuOS0yNzMuMSwyNzIuMgoJUzk4NS42LDYzNi41LDExMzYuNCw2MzYuNXoiLz4KPHBhdGggY2xhc3M9InN0MSIgZD0iTTEzMjksOTQ2Yy0xMDYuNC0xMDYtMjc4LjgtMTA2LTM4Ni4xLDBjLTk5LjYsOTkuMy0yNTguNywxMDYtMzY1LjEsMTguMWMtNi43LTcuNi0xMy40LTE2LjItMjEuMS0yMy45CgljLTEwNi40LTEwNi0xMDYuNC0yNzgsMC0zODQuOWMxMDYuNC0xMDYsMTA2LjQtMjc4LDAtMzg0LjlzLTI3OC44LTEwNi0zODYuMSwwYy0xMDcuMywxMDYtMTA2LjQsMjc4LDAsMzg0LjkKCWMxMDYuNCwxMDYsMTA2LjQsMjc4LDAsMzg0LjljLTYzLjIsNjMtODkuMSwxNTAtNzYuNywyMzIuMWM3LjcsNTcuMywzMy41LDExMy43LDc3LjYsMTU3LjZjMTA2LjQsMTA2LDI3OC44LDEwNiwzODYuMSwwCgljMTA2LjQtMTA2LDI3OC44LTEwNiwzODYuMSwwYzEwNi40LDEwNiwyNzguOCwxMDYsMzg2LjEsMEMxNDM1LjQsMTIyNCwxNDM1LjQsMTA1MiwxMzI5LDk0NnoiLz4KPC9zdmc+Cg==)](https://nomad-lab.eu/prod/v1/staging/gui/)
+![](https://coveralls.io/repos/github/nomad-coe/nomad-parser-vasp/badge.svg?branch=develop)
+![](https://img.shields.io/pypi/v/nomad-parser-vasp)
+![](https://img.shields.io/pypi/pyversions/nomad-parser-vasp)
 
+# `nomad-parser-vasp`
+
+This is a plugin for [NOMAD](https://nomad-lab.eu) which contains the parser and extended sections definitions for [VASP](https://wannier.org/) input/output files. The parser uses the [`nomad-simulations`](https://github.com/nomad-coe/nomad-simulations) schema as the basis of the schema.
 
 ## Getting started
 
-1. Click on the `Use this template` button and create a new plugin repository. The form will ask you to fill out the name for the new plugin repository.
+<!-- `nomad-parser-vasp` can be installed as a PyPI package using `pip`:
 
-2. In the newly created repository, start a new Github Codespace and generate the plugin structure.
-
-Run the following command to create a new NOMAD plugin project using cookiecutter-nomad-plugin:
-
-```sh
-cruft create https://github.com/FAIRmat-NFDI/cookiecutter-nomad-plugin
-```
-
-Cookiecutter prompts you for information regarding your plugin:
-
-```no-highlight
-full_name [John Doe]: Citizen Kane
-email [john.doe@physik.hu-berlin.de]: citizen@kane.de
-github_username [foo]: kane
-plugin_name [foobar]: awesome-tools
-module_name [awesome_tools]: awesome_tools
-short_description [NOMAD example template]: An awesome plugin for NOMAD
-version [0.1.0]:
-Select license:
-1 - MIT
-2 - BSD-3
-3 - GNU GPL v3.0+
-Choose from 1, 2, 3 [1]: 2
-include_schema_package [y/n] (y): y
-include_normalizer [y/n] (y): n
-include_parser [y/n] (y): y
-include_app [y/n] (y): n
-
-INFO:post_gen_project:Initializing python for package - src
-..
-INFO:post_gen_project:Remove temporary folder: licenses
-INFO:post_gen_project:Remove temporary folder: macros
-INFO:post_gen_project:Remove temporary folder: py_sources
-```
-
-
-
-
-There you go - you just created a minimal NOMAD plugin:
-
-> [!NOTE]
-> In the above prompt, we pressed `y` for schema_package and parser, this creates a python package with two plugin entry points: one for parser and one for schema_package.
-
-```no-highlight
-nomad-awesome-tools/
-├── LICENSE
-├── README.rst
-├── pyproject.toml
-├── move_template_files.sh
-├── src
-│   └── nomad_awesome_tools
-│       ├── __init__.py
-|       ├── schema_packages
-│       |   ├── __init__.py
-│       |   └── plugin.py
-|       └── parsers
-│           ├── __init__.py
-│           └── plugin.py
-|
-├── tests
-│   ├── conftest.py
-│   └── test_awesome.py
-└── MANIFEST.in
-```
-
-
-> [!NOTE]
-> The project `nomad-awesome-tools` is created in a new directory, we have included a helper script to move all the files to the parent level of the repository.
-
+> [!WARNING]
+> Unfortunately, the current plugin mechanism is not supported by the latest nomad-lab version on PyPI and therefore an index url pointing to the NOMAD Gitlab registry needs to be added.
 
 ```sh
-sh CHANGE_TO_PLUGIN_NAME/move_template_files.sh
+pip install nomad-parser-vasp --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple
+``` -->
+
+## Development
+
+If you want to develop locally this package, clone the project and in the workspace folder, create a virtual environment (you can use Python 3.9, 3.10, or 3.11):
+```sh
+git clone https://github.com/nomad-coe/nomad-parser-vasp.git
+cd nomad-parser-vasp
+python3.11 -m venv .pyenv
+. .pyenv/bin/activate
 ```
 
-> [!IMPORTANT]
-> The `CHANGE_TO_PLUGIN_NAME` should be substituted by the name of the plugin you've created. In the above case it'll be `sh nomad-awesome-tools/move_template_files.sh`. 
+Make sure to have `pip` upgraded:
+```sh
+pip install --upgrade pip
+```
+
+We recommend installing `uv` for fast pip installation of the packages:
+```sh
+pip install uv
+```
+
+Install the `nomad-lab` package:
+```sh
+uv pip install '.[dev]' --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple
+```
+
+**Note!**
+Until we have an official pypi NOMAD release with the plugins functionality make
+sure to include NOMAD's internal package registry (via `--index-url` in the above command).
+
+The plugin is still under development. If you would like to contribute, install the package in editable mode (with the added `-e` flag):
+```sh
+uv pip install -e '.[dev]' --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple
+```
+
+
+### Run the tests
+
+You can run locally the tests:
+```sh
+python -m pytest -sv tests
+```
+
+where the `-s` and `-v` options toggle the output verbosity.
+
+Our CI/CD pipeline produces a more comprehensive test report using the `pytest-cov` package. You can generate a local coverage report:
+```sh
+uv pip install pytest-cov
+python -m pytest --cov=src tests
+```
+
+### Run linting and auto-formatting
+
+We use [Ruff](https://docs.astral.sh/ruff/) for linting and formatting the code. Ruff auto-formatting is also a part of the GitHub workflow actions. You can run locally:
+```sh
+ruff check .
+ruff format . --check
+```
+
+
+### Debugging
+
+For interactive debugging of the tests, use `pytest` with the `--pdb` flag. We recommend using an IDE for debugging, e.g., _VSCode_. If that is the case, add the following snippet to your `.vscode/launch.json`:
+```json
+{
+  "configurations": [
+      {
+        "name": "<descriptive tag>",
+        "type": "debugpy",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "program": "${workspaceFolder}/.pyenv/bin/pytest",
+        "justMyCode": true,
+        "env": {
+            "_PYTEST_RAISE": "1"
+        },
+        "args": [
+            "-sv",
+            "--pdb",
+            "<path-to-plugin-tests>",
+        ]
+    }
+  ]
+}
+```
+
+where `<path-to-plugin-tests>` must be changed to the local path to the test module to be debugged.
+
+The settings configuration file `.vscode/settings.json` automatically applies the linting and formatting upon saving the modified file.
+
+
+### Documentation on Github pages
+
+To view the documentation locally, install the related packages using:
+```sh
+uv pip install -r requirements_docs.txt
+```
+
+Run the documentation server:
+```sh
+mkdocs serve
+```
+
+## Adding this plugin to NOMAD
+
+Currently, NOMAD has two distinct flavors that are relevant depending on your role as an user:
+1. [A NOMAD Oasis](#adding-this-plugin-in-your-nomad-oasis): any user with a NOMAD Oasis instance.
+2. [Local NOMAD installation and the source code of NOMAD](#adding-this-plugin-in-your-local-nomad-installation-and-the-source-code-of-nomad): internal developers.
+
+### Adding this plugin in your NOMAD Oasis
+
+Read the [NOMAD plugin documentation](https://nomad-lab.eu/prod/v1/staging/docs/howto/oasis/plugins_install.html) for all details on how to deploy the plugin on your NOMAD instance.
+
+### Adding this plugin in your local NOMAD installation and the source code of NOMAD
+
+Modify the text file under `/nomad/default_plugins.txt` and add:
+```sh
+<other-content-in-default_plugins.txt>
+nomad-parser-vasp==x.y.z
+```
+where `x.y.z` represents the released version of this plugin.
+
+Then, go to your NOMAD folder, activate your NOMAD virtual environment and run:
+```sh
+deactivate
+cd <route-to-NOMAD-folder>/nomad
+source .pyenv/bin/activate
+./scripts/setup_dev_env.sh
+```
+
+Alternatively and only valid for your local NOMAD installation, you can modify `nomad.yaml` to include this plugin:
+```yaml
+plugins:
+  entry_points:
+    include:
+      - ["nomad_parser_vasp.parsers:nomad_parser_vasp_plugin"]
+      - ["nomad_parser_vasp.schema_packages:nomad_parser_vasp_schema"]
+```
+
+**Note!**
+Once you modify your `nomad.yaml` file adding `include`, all the default plugins will be disconnected, so you will need to include them as well.
+
+
+## Main contributors
+| Name | E-mail     | Github profiles |
+|------|------------|-----------------|
+| Dr. Nathan Daelman | [nathan.daelman@physik.hu-berlin.de](mailto:nathan.daelman@physik.hu-berlin.de) | [@ndaelman-hu](https://github.com/ndaelman-hu) |
+| Dr. José M. Pizarro | [jose.pizarro@physik.hu-berlin.de](mailto:jose.pizarro@physik.hu-berlin.de) | [@JosePizarro3](https://github.com/JosePizarro3) |
+
+
+
+----
+
+This `nomad`_ plugin was generated with `Cookiecutter`_ along with `@nomad`_'s `cookiecutter-nomad-plugin`_ template.
