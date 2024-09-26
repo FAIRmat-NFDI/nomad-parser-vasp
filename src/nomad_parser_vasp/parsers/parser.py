@@ -1,3 +1,4 @@
+import os
 from typing import (
     TYPE_CHECKING,
 )
@@ -11,7 +12,6 @@ if TYPE_CHECKING:
     )
 
 from nomad.config import config
-from nomad.datamodel.metainfo.workflow import Workflow
 from nomad.parsing.parser import MatchingParser
 
 configuration = config.get_plugin_entry_point(
@@ -19,14 +19,11 @@ configuration = config.get_plugin_entry_point(
 )
 
 
-class NewParser(MatchingParser):
+class VASPParser(MatchingParser):
     def parse(
-        self,
-        mainfile: str,
-        archive: 'EntryArchive',
-        logger: 'BoundLogger',
-        child_archives: dict[str, 'EntryArchive'] = None,
+        self, filepath: str, archive: 'EntryArchive', logger: 'BoundLogger'
     ) -> None:
-        logger.info('NewParser.parse', parameter=configuration.parameter)
-
-        archive.workflow2 = Workflow(name='test')
+        self.mainfile = filepath
+        self.maindir = os.path.dirname(self.mainfile)
+        self.basename = os.path.basename(self.mainfile)
+        self.archive = archive

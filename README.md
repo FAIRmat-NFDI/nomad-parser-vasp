@@ -152,8 +152,8 @@ Alternatively and only valid for your local NOMAD installation, you can modify `
 plugins:
   entry_points:
     include:
-      - ["nomad_parser_vasp.parsers:nomad_parser_vasp_plugin"]
-      - ["nomad_parser_vasp.schema_packages:nomad_parser_vasp_schema"]
+      - ["nomad_parser_vasp.parsers:parser_entry_point"]
+      - ["nomad_parser_vasp.schema_packages:schema_package_entry_point"]
 ```
 
 **Note!**
