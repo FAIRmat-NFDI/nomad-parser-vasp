@@ -35,10 +35,7 @@ class VASPParser(MatchingParser):
 
         # Adding Simulation to data
         simulation = Simulation()
-        simulation.program = Program(
-            name='Wannier90',
-            version=self.wout_parser.get('version', ''),
-        )
+        simulation.program = Program(name='VASP')
         archive.data = simulation
 
         # ModelSystem
@@ -56,6 +53,4 @@ class VASPParser(MatchingParser):
         # Workflow section
         workflow = SinglePoint()
         workflow.normalize(archive=archive, logger=logger)
-        print('DFT')
-        print(workflow)
         archive.workflow2 = workflow
