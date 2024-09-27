@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 from nomad.config import config
 from nomad.parsing.parser import MatchingParser
 from nomad_simulations.schema_packages.general import Program, Simulation
+from nomad_simulations.schema_packages.model_method import DFT
 from nomad_simulations.schema_packages.model_system import ModelSystem
 from nomad_simulations.schema_packages.outputs import Outputs
 from nomad_simulations.schema_packages.workflow import SinglePoint
@@ -43,6 +44,10 @@ class VASPParser(MatchingParser):
         # ModelSystem
         model_system = ModelSystem()
         simulation.model_system.append(model_system)
+
+        # ModelMethod
+        dft = DFT()
+        simulation.model_method.append(dft)
 
         # Outputs
         outputs = Outputs()
