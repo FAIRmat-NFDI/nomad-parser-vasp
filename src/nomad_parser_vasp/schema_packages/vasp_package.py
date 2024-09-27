@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     pass
 
-from nomad.metainfo import SchemaPackage, SubSection
+from nomad.metainfo import SchemaPackage
 from nomad.parsing.file_parser.mapping_parser import MappingAnnotationModel
 from nomad_simulations.schema_packages import (
     general,
@@ -80,8 +80,7 @@ class DFT(model_method.DFT):
         )
     )  # TODO convert vasp bool
 
-    numerical_settings = SubSection(sub_section=KSpace.m_def, repeats=True)
-    numerical_settings.m_annotations['xml'] = MappingAnnotationModel(
+    numerical_settings.KSpace.m_def.m_annotations['xml'] = MappingAnnotationModel(
         path='modeling.kpoints'
     )
 
@@ -99,8 +98,9 @@ class AtomicCell(model_system.AtomicCell):
 
 
 class ModelSystem(general.ModelSystem):
-    cell = SubSection(sub_section=AtomicCell.m_def, repeats=True)
-    cell.m_annotations['xml'] = MappingAnnotationModel(path='.structure')
+    model_system.AtomicCell.m_def.m_annotations['xml'] = MappingAnnotationModel(
+        path='.structure'
+    )
 
 
 class TotalEnergy(outputs.TotalEnergy):
@@ -112,6 +112,9 @@ class TotalEnergy(outputs.TotalEnergy):
 class ElectronicEigenvalues(outputs.ElectronicEigenvalues):
     outputs.ElectronicEigenvalues.n_bands.m_annotations['xml'] = MappingAnnotationModel(
         path='length(.array.set.set.set[0].r)'
+    )
+    outputs.ElectronicEigenvalues.n_bands.m_annotations['xml2'] = (
+        MappingAnnotationModel(path='length(.array.set.set.set[0].r)')
     )
     # TODO This only works for non-spin pol
     outputs.ElectronicEigenvalues.occupation.m_annotations['xml2'] = (
@@ -134,13 +137,13 @@ class Simulation(general.Simulation):
         path='.generator'
     )
 
-    model_method = SubSection(sub_section=DFT.m_def, repeats=True)
-    model_method.m_annotations['xml'] = MappingAnnotationModel(
+    model_method.DFT.m_def.m_annotations['xml'] = MappingAnnotationModel(
         path='.parameters.separator[?"@name"==\'electronic\']'
     )
 
-    model_system = SubSection(sub_section=ModelSystem.m_def, repeats=True)
-    model_system.m_annotations['xml'] = MappingAnnotationModel(path='.calculation')
+    general.Simulation.model_system.m_annotations['xml'] = MappingAnnotationModel(
+        path='.calculation'
+    )
 
     general.Simulation.outputs.m_annotations = dict(
         xml=MappingAnnotationModel(path='.calculation'),
