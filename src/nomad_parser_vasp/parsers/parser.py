@@ -13,6 +13,9 @@ if TYPE_CHECKING:
 
 from nomad.config import config
 from nomad.parsing.parser import MatchingParser
+from nomad_simulations.schema_packages.general import Program, Simulation
+from nomad_simulations.schema_packages.model_system import ModelSystem
+from nomad_simulations.schema_packages.outputs import Outputs
 from nomad_simulations.schema_packages.workflow import SinglePoint
 
 configuration = config.get_plugin_entry_point(
@@ -29,6 +32,25 @@ class VASPParser(MatchingParser):
         self.basename = os.path.basename(self.mainfile)
         self.archive = archive
 
+        # Adding Simulation to data
+        simulation = Simulation()
+        simulation.program = Program(
+            name='Wannier90',
+            version=self.wout_parser.get('version', ''),
+        )
+        archive.data = simulation
+
+        # ModelSystem
+        model_system = ModelSystem()
+        simulation.model_system.append(model_system)
+
+        # Outputs
+        outputs = Outputs()
+        simulation.outputs.append(outputs)
+
         # Workflow section
         workflow = SinglePoint()
-        self.archive.workflow2 = workflow
+        workflow.normalize(archive=archive, logger=logger)
+        print('DFT')
+        print(workflow)
+        archive.workflow2 = workflow
