@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 from nomad.config import config
 from nomad.parsing.parser import MatchingParser
+from nomad_simulations.schema_packages.workflow import SinglePoint
 
 configuration = config.get_plugin_entry_point(
     'nomad_parser_vasp.parsers:parser_entry_point'
@@ -27,3 +28,7 @@ class VASPParser(MatchingParser):
         self.maindir = os.path.dirname(self.mainfile)
         self.basename = os.path.basename(self.mainfile)
         self.archive = archive
+
+        # Workflow section
+        workflow = SinglePoint()
+        self.archive.workflow2 = workflow
