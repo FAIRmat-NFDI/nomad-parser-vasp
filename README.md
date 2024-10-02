@@ -9,18 +9,18 @@ This is a plugin for [NOMAD](https://nomad-lab.eu) which contains the parser and
 
 ## Getting started
 
-<!-- `nomad-parser-vasp` can be installed as a PyPI package using `pip`:
+`nomad-parser-vasp` can be installed as a PyPI package using `pip`:
 
 > [!WARNING]
 > Unfortunately, the current plugin mechanism is not supported by the latest nomad-lab version on PyPI and therefore an index url pointing to the NOMAD Gitlab registry needs to be added.
 
 ```sh
 pip install nomad-parser-vasp --index-url https://gitlab.mpcdf.mpg.de/api/v4/projects/2187/packages/pypi/simple
-``` -->
+
 
 ## Development
 
-If you want to develop locally this package, clone the project and in the workspace folder, create a virtual environment (you can use Python 3.9, 3.10, or 3.11):
+If you want to develop locally this package, clone the project and in the workspace folder, create a virtual environment (you can use Python 3.9, 3.10, 3.11, or 3.12):
 ```sh
 git clone https://github.com/nomad-coe/nomad-parser-vasp.git
 cd nomad-parser-vasp
