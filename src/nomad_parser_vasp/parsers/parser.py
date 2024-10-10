@@ -52,5 +52,5 @@ class VASPParser(MatchingParser):
 
         # Workflow section
         workflow = SinglePoint()
-        workflow.normalize(archive=archive, logger=logger)
+        # workflow.normalize(archive=archive, logger=logger)
         archive.workflow2 = workflow
