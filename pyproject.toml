@@ -108,7 +108,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [project.entry-points.'nomad.plugin']
-xml_parser = "nomad_parser_vasp.parsers:xml_entry_point"
+vasp_parser = "nomad_parser_vasp.parsers:vasp_parser_entry_point"
 
 
 [tool.cruft]
