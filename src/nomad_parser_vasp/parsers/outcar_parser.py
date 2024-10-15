@@ -316,6 +316,49 @@ class OutcarTextParser(TextParser):
 
 
 class OutcarParser(MappingTextParser):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.xc_functional_mapping = {
+            '--': ['GGA_X_PBE', 'GGA_C_PBE'],
+            'HL': ['LDA_C_HL'],
+            'WI': ['LDA_C_WIGNER'],
+            'PZ': ['LDA_C_PZ'],
+            '91': ['GGA_X_PW91', 'GGA_C_PW91'],
+            'PE': ['GGA_X_PBE', 'GGA_C_PBE'],
+            'PBE': ['GGA_X_PBE', 'GGA_C_PBE'],
+            'RE': ['GGA_X_PBE_R'],
+            'VW': ['LDA_C_VWN'],
+            'RP': ['GGA_X_RPBE', 'GGA_C_PBE'],
+            'PS': ['GGA_C_PBE_SOL', 'GGA_X_PBE_SOL'],
+            'AM': ['GGA_X_AM05', 'GGA_C_AM05'],
+            'B3': ['HYB_GGA_XC_B3LYP3'],
+            'B5': ['HYB_GGA_XC_B3LYP5'],
+            'BF': ['GGA_X_BEEFVDW', 'GGA_XC_BEEFVDW'],
+            'CO': [],  # TODO check if this is ever used
+            'OR': ['GGA_X_OPTPBE_VDW'],
+            'BO': ['GGA_X_OPTB88_VDW'],
+            'MK': ['GGA_X_OPTB86B_VDW'],
+            'ML': ['VDW_XC_DF2'],
+            'CX': ['VDW_XC_DF_CX'],
+            'TPSS': ['MGGA_X_TPSS', 'MGGA_C_TPSS'],
+            'RTPSS': ['MGGA_X_RTPSS'],
+            'M06L': ['MGGA_C_M06_L'],
+            'MS0': ['MGGA_X_MS0'],
+            'MS1': ['MGGA_X_MS1'],
+            'MS2': ['MGGA_X_MS2'],
+            'SCAN': ['MGGA_X_SCAN'],
+            'RSCAN': ['MGGA_X_RSCAN', 'MGGA_C_RSCAN'],
+            'R2SCAN': ['MGGA_X_R2SCAN', 'MGGA_C_R2SCAN'],
+            'SCANL': ['MGGA_X_SCANL', 'MGGA_C_SCANL'],
+            'RSCANL': [],  # not in LibXC, nor any paper, just deorbitalized SCANL
+            'R2SCANL': ['MGGA_X_R2SCANL', 'MGGA_C_R2SCANL'],
+            'OFR2': [],
+            'MBJ': ['MGGA_X_BJ06'],
+            'LBMJ': [],  # TODO ask Miguel Marquez
+            'HLE17': ['MGGA_XC_HLE17'],  # TODO check if this is ever used
+            'RA': ['LDA_C_PW_RPA'],  # TODO check if this is ever used
+        }
+
     def get_version(self, source: Dict[str, Any]) -> str:
         return ' '.join(
             [
@@ -356,6 +399,50 @@ class OutcarParser(MappingTextParser):
             eigs, occs = eigenvalues[nspin].T[1:3]
             data.append(dict(eigenvalues=eigs.T, occupations=occs.T, n_bands=n_bands))
         return data
+
+    def get_xc_functionals(self, parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
+        xc_functionals = []
+        if parameters.get('LHFCALC', False):
+            xc_functional = {}
+            gga = parameters.get('GGA', 'PE')
+            aexx = parameters.get('AEXX', 0.0)
+            aggax = parameters.get('AGGAX', 1.0)
+            aggac = parameters.get('AGGAC', 1.0)
+            aldac = parameters.get('ALDAC', 1.0)
+            hfscreen = parameters.get('HFSCREEN', 0.0)
+
+            if hfscreen == 0.2:
+                xc_functional['name'] = 'HYB_GGA_XC_HSE06'
+            elif hfscreen == 0.3:
+                xc_functional['name'] = 'HYB_GGA_XC_HSE03'
+            elif (
+                gga == 'B3'
+                and aexx == 0.2
+                and aggax == 0.72
+                and aggac == 0.81
+                and aldac == 0.19
+            ):
+                xc_functional['name'] = 'HYB_GGA_XC_B3LYP3'
+            elif aexx == 1.0 and aldac == 0.0 and aggac == 0.0:
+                xc_functional['name'] = 'HF_X'
+            elif gga == 'PE':
+                xc_functional['name'] = 'HYB_GGA_XC_PBEH'
+            else:
+                xc_functional['name'] = f'HYB_GGA_XC_{gga}'
+            xc_functionals.append(xc_functional)
+        else:
+            metagga = parameters.get('METAGGA')
+            if metagga:
+                functionals = self.xc_functional_mapping.get(
+                    metagga, [metagga]
+                )
+            else:
+                functionals = self.xc_functional_mapping.get(
+                    parameters.get('GGA'), []
+                )
+            for functional in functionals:
+                xc_functionals.append({'name': functional})
+        return xc_functionals
 
 
 class VASPOutcarParser:

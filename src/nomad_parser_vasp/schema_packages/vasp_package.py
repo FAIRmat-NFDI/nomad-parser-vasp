@@ -43,10 +43,11 @@ class Program(general.Program):
 
 
 class XCFunctional(model_method.XCFunctional):
-    model_method.XCFunctional.libxc_name.m_annotations = dict(
-        xml=MappingAnnotationModel(
-            mapper='.i[?"@name"==\'GGA\'] | [0].__value'  # TODO add LDA & mGGA, convert_xc
-        )
+    model_method.XCFunctional.libxc_name.m_annotations[XML_ANNOTATION_KEY] = MappingAnnotationModel(
+        mapper='.i[?"@name"==\'GGA\'] | [0].__value'  # TODO add LDA & mGGA, convert_xc
+    )
+    model_method.XCFunctional.libxc_name.m_annotations[OUTCAR_ANNOTATION_KEY] = MappingAnnotationModel(
+        mapper='.name'
     )
 
 
@@ -83,6 +84,9 @@ class DFT(model_method.DFT):
         MappingAnnotationModel(
             mapper='.separator[?"@name"==\'electronic exchange-correlation\']'
         )
+    )
+    model_method.DFT.xc_functionals.m_annotations[OUTCAR_ANNOTATION_KEY] = MappingAnnotationModel(
+        mapper=('get_xc_functionals', ['.@'])
     )
 
     model_method.DFT.exact_exchange_mixing_factor.m_annotations[XML_ANNOTATION_KEY] = (
@@ -246,6 +250,9 @@ class Simulation(general.Simulation):
 
     model_method.DFT.m_def.m_annotations[XML_ANNOTATION_KEY] = MappingAnnotationModel(
         mapper='.parameters.separator[?"@name"==\'electronic\']'
+    )
+    model_method.DFT.m_def.m_annotations[OUTCAR_ANNOTATION_KEY] = MappingAnnotationModel(
+        mapper='parameters'
     )
 
     general.Simulation.model_system.m_annotations[XML_ANNOTATION_KEY] = (
