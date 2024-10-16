@@ -22,12 +22,12 @@ configuration = config.get_plugin_entry_point(
 
 class RunXMLParser(XMLParser):
     @staticmethod
-    def mix_alpha(mix, cond):
+    def mix_alpha(mix: float, cond: bool) -> float:
         return mix if cond else 0
 
     @staticmethod
-    def get_eigenvalues(array):
-        return np.array(array).T[1]
+    def get_eigenvalues(array: list) -> np.ndarray:
+        return np.array(array).T[1] if array is not None else np.array([])
 
 
 class VasprunXMLParser:
