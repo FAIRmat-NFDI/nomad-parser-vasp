@@ -20,7 +20,7 @@ configuration = config.get_plugin_entry_point(
 )
 
 
-class RunXMLParser(XMLParser):
+class VasprunParser(XMLParser):
     def mix_alpha(self, mix: float, cond: bool) -> float:
         return mix if cond else 0
 
