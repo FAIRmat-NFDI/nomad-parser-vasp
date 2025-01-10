@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Any
+from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import (
@@ -8,19 +8,16 @@ if TYPE_CHECKING:
         BoundLogger,
     )
 
-import numpy as np
 import re
 
+import numpy as np
 from nomad.datamodel import EntryArchive
-from nomad.parsing.file_parser import TextParser, Quantity
-from nomad.parsing.file_parser.mapping_parser import (
-    MetainfoParser,
-    TextParser as MappingTextParser,
-    Path,
-)
+from nomad.parsing.file_parser import Quantity, TextParser
+from nomad.parsing.file_parser.mapping_parser import MetainfoParser, Path
+from nomad.parsing.file_parser.mapping_parser import TextParser as MappingTextParser
+from nomad_simulations.schema_packages.general import Simulation
 
-from nomad_parser_vasp.schema_packages.vasp_package import Simulation
-
+from nomad_parser_vasp.schema_packages.vasp_package import OUTCAR_ANNOTATION_KEY
 
 RE_N = r'[\n\r]'
 
@@ -377,6 +374,12 @@ class OutcarParser(MappingTextParser):
         parser = Path(path=path)
         return parser.get_data(source)
 
+    def get_forces(self, source: Any) -> Dict[str, Any]:
+        value = self.get_data(source, path='.positions_forces | [1]')
+        if value is None:
+            return {}
+        return dict(forces=value, npoints=len(value), rank=[3])
+
     def get_energy_contributions(
         self, source: Dict[str, Any], **kwargs
     ) -> List[Dict[str, Any]]:
@@ -397,7 +400,14 @@ class OutcarParser(MappingTextParser):
         data = []
         for nspin in range(ispin):
             eigs, occs = eigenvalues[nspin].T[1:3]
-            data.append(dict(eigenvalues=eigs.T, occupations=occs.T, n_bands=n_bands))
+            data.append(
+                dict(
+                    eigenvalues=eigs.T,
+                    occupations=occs.T,
+                    n_bands=n_bands,
+                    npoints=n_kpts,
+                )
+            )
         return data
 
     def get_xc_functionals(self, parameters: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -433,13 +443,9 @@ class OutcarParser(MappingTextParser):
         else:
             metagga = parameters.get('METAGGA')
             if metagga:
-                functionals = self.xc_functional_mapping.get(
-                    metagga, [metagga]
-                )
+                functionals = self.xc_functional_mapping.get(metagga, [metagga])
             else:
-                functionals = self.xc_functional_mapping.get(
-                    parameters.get('GGA'), []
-                )
+                functionals = self.xc_functional_mapping.get(parameters.get('GGA'), [])
             for functional in functionals:
                 xc_functionals.append({'name': functional})
         return xc_functionals
@@ -457,7 +463,7 @@ class VASPOutcarParser:
         archive_data_parser = MetainfoParser()
         archive_data = Simulation()
         archive_data_parser.data_object = archive_data
-        archive_data_parser.annotation_key = 'outcar'
+        archive_data_parser.annotation_key = OUTCAR_ANNOTATION_KEY
 
         # set up outcar parser
         source_parser = OutcarParser()

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import (
@@ -8,8 +8,8 @@ if TYPE_CHECKING:
         BoundLogger,
     )
 
-from nomad_parser_vasp.parsers.xml_parser import VASPXMLParser
 from nomad_parser_vasp.parsers.outcar_parser import VASPOutcarParser
+from nomad_parser_vasp.parsers.xml_parser import VASPXMLParser
 
 
 class VASPParser:
